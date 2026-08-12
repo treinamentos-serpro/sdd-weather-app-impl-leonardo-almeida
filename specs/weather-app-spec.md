@@ -1,185 +1,204 @@
-# Weather App Specification
+# Especificação do Produto — Weather App
 
 ## Overview
 
-A Weather App é uma aplicação web responsiva, com foco principal em uso mobile, para consulta de clima de cidades em tempo real. A solução deve permitir buscar uma cidade, visualizar o clima atual e a previsão de 5 dias, além de alternar entre Celsius e Fahrenheit.
+A Weather App é uma aplicação web responsiva para consulta do clima em cidades, com foco principal em uso mobile. O produto deve permitir que o usuário pesquise uma cidade, visualize o clima atual e a previsão para os próximos 5 dias, e alterne entre Celsius e Fahrenheit sem exigir autenticação ou backend próprio.
 
-A aplicação deve funcionar sem autenticação, sem cadastro e sem persistência no servidor. A interface deve ser em português do Brasil e priorizar velocidade, clareza visual e legibilidade em telas pequenas.
+A solução deve priorizar velocidade, clareza e legibilidade em telas pequenas. A interface será em português do Brasil e usará a API Open-Meteo como fonte principal de dados, sem necessidade de chave de acesso.
 
-### Decisões de produto
-- Fonte de dados: Open-Meteo, sem API key.
-- Janela de previsão: hoje + 4 dias.
-- Unidade padrão: Celsius.
-- Idioma da interface: pt-BR.
-- Sem autenticação e sem persistência de servidor.
+O escopo do MVP inclui:
+- busca por cidade;
+- listagem de resultados quando houver múltiplas cidades;
+- clima atual da cidade selecionada;
+- previsão para 5 dias, definindo hoje + 4 dias consecutivos;
+- alternância de unidade de temperatura;
+- estados de carregamento, erro e ausência de resultado;
+- layout mobile-first com boa legibilidade.
 
 ## Functional Requirements
 
 ### FR1. Busca por cidade
-O sistema deve permitir ao usuário buscar uma cidade pelo nome e obter o clima correspondente.
+O sistema deve permitir que o usuário envie o nome de uma cidade e inicie a consulta do clima correspondente.
 
-Given/When/Then:
-- Given que o usuário acessa a tela inicial, When ele digita um nome de cidade e confirma a busca, Then o sistema deve validar a entrada e iniciar a consulta.
-- Given que a busca retorna um único resultado válido, When a resposta for recebida, Then o sistema deve carregar o clima atual e a previsão da cidade correspondente.
-- Given que a busca retorna múltiplos resultados, When a resposta for recebida, Then o sistema deve exibir uma lista de opções para o usuário selecionar a cidade correta.
-- Given que a busca não retorna nenhum resultado, When a resposta for recebida, Then o sistema deve mostrar uma mensagem de “cidade não encontrada” e manter o campo de busca disponível para nova tentativa.
+Critérios de aceite (Given/When/Then):
+- Given que o usuário está na tela inicial, When digita um nome de cidade e aciona a busca, Then o sistema deve validar a entrada e iniciar a consulta.
+- Given que o campo de busca está vazio ou contém apenas espaços, When o usuário tenta buscar, Then o sistema deve impedir a ação e exibir a mensagem “Digite o nome de uma cidade”.
+- Given que a busca retorna um único resultado válido, When a resposta for recebida, Then o sistema deve selecionar automaticamente a cidade e renderizar o clima atual e a previsão.
+- Given que a busca retorna mais de um resultado, When o retorno for processado, Then o sistema deve apresentar uma lista de opções com as cidades encontradas.
+- Given que a busca não retorna registros, When a resposta for processada, Then o sistema deve exibir a mensagem “Cidade não encontrada” e manter o campo de busca disponível para nova tentativa.
 
-### FR2. Seleção de cidade em resultado múltiplo
-Quando houver múltiplas cidades relacionadas ao termo buscado, o sistema deve permitir que o usuário selecione a cidade correta.
+### FR2. Seleção de cidade em resultados múltiplos
+Quando houver mais de uma localidade associada ao termo pesquisado, a aplicação deve permitir a seleção explícita da cidade correta.
 
-Given/When/Then:
-- Given que a busca retornou mais de um resultado, When a lista de opções for exibida, Then cada item deve conter, no mínimo, nome da cidade e identificação de localidade (estado/país).
-- Given que o usuário seleciona uma cidade da lista, When a seleção for confirmada, Then o sistema deve atualizar a tela com os dados daquela cidade.
-- Given que o usuário realiza uma nova busca, When a nova consulta for enviada, Then a cidade previamente selecionada deve ser substituída pelo novo contexto de busca.
+Critérios de aceite (Given/When/Then):
+- Given que a busca retornou múltiplos resultados, When a lista é exibida, Then ela deve conter, no mínimo, o nome da cidade e a localidade associada, como estado, país ou região.
+- Given que o usuário seleciona uma cidade da lista, When a opção for acionada, Then o sistema deve atualizar os dados da tela com o clima da cidade escolhida.
+- Given que uma nova busca é iniciada, When a nova resposta for recebida, Then o sistema deve substituir a seleção anterior pelo novo contexto da busca.
 
 ### FR3. Exibição do clima atual
-O sistema deve mostrar o clima atual da cidade selecionada.
+O sistema deve apresentar o clima atual da cidade selecionada com temperatura e condição climática.
 
-Given/When/Then:
-- Given que uma cidade foi selecionada, When os dados forem carregados, Then a tela deve exibir a temperatura atual e a condição climática atual.
-- Given que os dados estão disponíveis, When a tela renderizar o clima atual, Then o nome da cidade e, quando disponível, o estado/país devem ser exibidos.
-- Given que os dados da API estão incompletos, When a renderização ocorrer, Then o sistema deve mostrar apenas os campos válidos, sem quebrar a tela.
+Critérios de aceite (Given/When/Then):
+- Given que uma cidade foi selecionada, When os dados forem carregados, Then a tela deve exibir ao menos a temperatura atual e a descrição da condição climática.
+- Given que o nome da cidade e a localidade estiverem disponíveis, When a tela renderizar, Then o sistema deve exibir o nome da cidade e, quando disponível, o estado ou país.
+- Given que a API retorna valores parciais, When a renderização ocorrer, Then o sistema deve mostrar os campos válidos e manter a interface funcional sem quebrar o layout.
 
 ### FR4. Previsão de 5 dias
-O sistema deve exibir a previsão para os próximos 5 dias, incluindo o dia atual e 4 dias seguintes.
+O sistema deve mostrar a previsão do tempo para os próximos 5 dias, com o dia atual e mais 4 dias consecutivos.
 
-Given/When/Then:
-- Given que a previsão foi carregada, When a tela for renderizada, Then ela deve mostrar exatamente 5 dias consecutivos, começando pelo dia atual.
-- Given que cada dia da previsão estiver disponível, When a listagem for exibida, Then cada item deve mostrar, no mínimo, a temperatura mínima e a máxima.
-- Given que a previsão tiver dados parciais, When a listagem for renderizada, Then o sistema deve manter o restante da previsão visível e indicar a ausência do dado em vez de quebrar a lista.
+Critérios de aceite (Given/When/Then):
+- Given que a previsão foi carregada com sucesso, When a tela for apresentada, Then o sistema deve mostrar 5 itens de previsão em sequência cronológica, começando pelo dia atual.
+- Given que os dados da previsão estiverem disponíveis, When cada item for renderizado, Then ele deve exibir, no mínimo, a temperatura mínima e a máxima do dia.
+- Given que alguns dados da previsão estiverem ausentes, When a lista for renderizada, Then o sistema deve manter o restante visível e indicar a ausência do dado sem interromper a leitura da previsão.
 
 ### FR5. Alternância entre Celsius e Fahrenheit
-O usuário deve poder trocar a unidade de temperatura em toda a interface.
+O usuário deve poder alternar a unidade de temperatura exibida em toda a interface.
 
-Given/When/Then:
-- Given que a aplicação está ativa, When o usuário altera a unidade de temperatura, Then o clima atual e a previsão devem atualizar para a unidade selecionada.
-- Given que a unidade foi definida como Fahrenheit, When a conversão for aplicada, Then cada valor exibido deve seguir a fórmula °F = °C × 9/5 + 32.
-- Given que a unidade foi alterada, When a sessão continuar, Then a escolha deve permanecer ativa até o fechamento da sessão atual.
+Critérios de aceite (Given/When/Then):
+- Given que a aplicação está em uso, When o usuário ativa a troca de unidade, Then o sistema deve atualizar o clima atual e a previsão para a unidade selecionada.
+- Given que a unidade selecionada é Fahrenheit, When os valores forem convertidos, Then cada temperatura deve refletir a conversão correspondente e manter consistência visual na tela.
+- Given que a unidade foi alterada, When a sessão continuar, Then a seleção deve permanecer ativa até que o usuário altere a unidade novamente.
 
-### FR6. Tratamento de erro e ausência de dados
-O sistema deve tratar falhas de rede, busca sem resultado e dados parcialmente vazios sem quebrar a experiência.
+### FR6. Indicador de carregamento e feedback de erro
+O sistema deve informar ao usuário quando a consulta está em andamento e quando a operação falha.
 
-Given/When/Then:
-- Given que a API falha ou responde com erro, When a busca for executada, Then o sistema deve exibir uma mensagem de erro clara e permitir nova tentativa.
-- Given que a busca não retorna resultados, When a consulta for concluída, Then o sistema deve informar que nenhum resultado foi encontrado.
-- Given que a API retorna dados incompletos, When a renderização ocorrer, Then o sistema deve mostrar os dados disponíveis e marcar os ausentes como indisponíveis.
+Critérios de aceite (Given/When/Then):
+- Given que o usuário enviou a busca, When a consulta estiver em andamento, Then o sistema deve exibir um indicador de carregamento visível.
+- Given que a API falha ou não responde, When a operação finalizar, Then o sistema deve exibir uma mensagem de erro e permitir nova tentativa.
+- Given que a busca não encontra resultados, When a resposta for processada, Then o sistema deve mostrar uma mensagem de ausência de resultado sem bloquear a navegação.
 
-### FR7. Indicador de carregamento e estado de espera
-O sistema deve informar ao usuário que a busca está em andamento.
+### FR7. Layout mobile-first e legibilidade
+O sistema deve priorizar a experiência em dispositivos móveis, com foco em leitura rápida e navegação simples.
 
-Given/When/Then:
-- Given que o usuário envia uma busca, When a consulta estiver em andamento, Then o sistema deve mostrar estado de carregamento explícito.
-- Given que a busca estiver em andamento, When a resposta demorar mais que o esperado, Then o sistema deve manter o botão/estado em um estado legível e não bloquear a interação do usuário.
-
-### FR8. Mobile-first e legibilidade
-O sistema deve considerar mobile como prioridade e manter boa legibilidade em telas pequenas.
-
-Given/When/Then:
-- Given que o usuário acessa a aplicação em smartphone, When a tela principal for carregada, Then os principais elementos (campo de busca, temperatura e previsão) devem estar visíveis sem rolagem complexa.
-- Given que a aplicação está em mobile, When o conteúdo for renderizado, Then os textos e controles devem manter legibilidade adequada e interação confortável.
+Critérios de aceite (Given/When/Then):
+- Given que o usuário acessa a aplicação em largura de 360px, When a página principal for carregada, Then os elementos principais de busca, clima atual e previsão devem estar visíveis sem exigir múltiplas interações.
+- Given que a interface está em smartphone, When textos e controles forem renderizados, Then eles devem manter boa legibilidade, com tamanho e contraste adequados.
+- Given que os dados forem exibidos em mobile, When a tela for montada, Then busca, resultado e previsão devem ficar organizados sem sobreposição de conteúdo.
 
 ## User Stories
 
-- Como Maria, profissional em trânsito, quero buscar rapidamente uma cidade para decidir o que vestir antes de sair de casa.
-- Como Carlos, viajante e planejador de rota, quero comparar cidades e datas para escolher melhor o destino da viagem.
-- Como Ana, usuária casual, quero consultar o clima atual de forma clara e direta, sem precisar interpretar dados técnicos.
-- Como Maria, quero alternar entre Celsius e Fahrenheit para manter a leitura confortável de acordo com o contexto de uso.
-- Como Ana, quero receber mensagens claras quando a busca não encontrar resultados ou quando a API falhar.
-- Como Carlos, quero ver a previsão de 5 dias em uma estrutura fácil de comparar para planejar a agenda.
+- Como usuário casual, quero buscar uma cidade para consultar o clima atual com rapidez e sem cadastro, para obter a informação necessária em segundos.
+- Como viajante, quero comparar a previsão de 5 dias entre cidades para escolher o melhor destino com base no clima esperado.
+- Como pessoa em trânsito, quero visualizar a temperatura atual e a condição climática da cidade selecionada para me preparar antes de sair de casa.
+- Como usuário brasileiro, quero alternar entre Celsius e Fahrenheit para ajustar a leitura da temperatura ao meu contexto de uso.
+- Como usuário que busca uma cidade específica, quero receber uma lista de resultados relevantes quando houver múltiplas opções para selecionar a localidade correta.
+- Como usuário em mobile, quero ver os dados do clima em uma interface legível e organizada para consultar informações rapidamente no smartphone.
+- Como usuário em caso de problema, quero receber mensagens claras de erro ou ausência de resultado para entender o que aconteceu e tentar novamente.
 
 ## Acceptance Criteria
 
-### Global acceptance criteria
-- A aplicação funciona em navegadores modernos e em telas mobile.
-- O usuário consegue consultar o clima atual de uma cidade válida em até 3 ações principais: inserir texto, confirmar busca e visualizar resultado.
-- O sistema apresenta corretamente os estados de sucesso, múltiplos resultados, ausência de resultado e erro de API.
-- A interface mantém consistência entre os valores exibidos e a unidade de temperatura ativa.
+### Critérios gerais de aceitação
+- A aplicação funciona em navegadores modernos e em dispositivos móveis comuns.
+- O usuário consegue consultar o clima de uma cidade em até três ações principais: digitar o nome da cidade, confirmar a busca e visualizar o resultado.
+- O sistema cobre os estados de sucesso, múltiplos resultados, ausência de resultado e falha de rede ou API.
+- A interface mantém consistência entre os valores exibidos e a unidade de temperatura escolhida.
+- A interação é clara e acessível em mobile, com foco em legibilidade e simplicidade.
+
+### Critérios por história
+- História de busca: o usuário consegue localizar uma cidade válida e obter o clima correspondente.
+- História de seleção: quando há múltiplos resultados, o usuário consegue identificar e escolher a cidade correta.
+- História de clima atual: o sistema apresenta temperatura e condição climática de forma evidente e limpa.
+- História de previsão: a previsão de 5 dias é apresentada em uma estrutura comparável e fácil de ler.
+- História de conversão de unidade: a alternância entre Celsius e Fahrenheit atualiza a interface de forma consistente.
+- História de erro: mensagens de erro e ausência de dados orientam o usuário sem interromper a navegação.
 
 ## Non-Functional Requirements
 
 ### NFR1. Usabilidade
-A interface deve ser direta e intuitiva, com foco em leitura rápida.
+A aplicação deve ser intuitiva, direta e fácil de aprender.
 
-Acceptance Criteria:
-- O usuário consegue entender como procurar uma cidade sem instruções adicionais.
-- A informação principal aparece acima do restante da tela.
+Critérios de aceite:
+- O fluxo principal pode ser entendido sem instruções complementares.
+- A informação mais importante é exibida com destaque na tela inicial.
+- Os rótulos e mensagens são compreensíveis para usuários sem conhecimento técnico.
 
 ### NFR2. Responsividade
-A interface deve funcionar em smartphones e também em telas maiores.
+A interface deve funcionar em diferentes larguras de tela, com ênfase em smartphones.
 
-Acceptance Criteria:
-- O layout principal continua funcional em largura mínima de 360px.
-- Os elementos interativos permanecem acessíveis e legíveis em mobile.
+Critérios de aceite:
+- O layout permanece funcional em telas de 360px de largura e acima.
+- Elementos interativos e textos mantêm legibilidade em dispositivos móveis.
+- A organização visual não compromete o uso em orientação vertical ou horizontal.
 
 ### NFR3. Performance
-A aplicação deve responder rapidamente às consultas.
+A aplicação deve responder de forma ágil às ações do usuário.
 
-Acceptance Criteria:
-- A tela principal deve renderizar os dados essenciais em até 3 segundos em rede móvel comum.
-- Requisições redundantes devem ser evitadas quando houver dados recentes em cache.
+Critérios de aceite:
+- A renderização dos dados principais ocorre em tempo aceitável em redes móveis comuns.
+- A aplicação evita requisições redundantes e reutiliza dados quando possível.
+- O carregamento e a atualização de conteúdo não geram atraso perceptível na experiência.
 
 ### NFR4. Confiabilidade
-A aplicação deve tratar falhas de forma segura e previsível.
+A solução deve lidar com falhas e dados incompletos sem quebrar a interface.
 
-Acceptance Criteria:
-- Falhas de rede ou dados incompletos não quebram a interface.
-- O sistema mantém feedback claro ao usuário em todos os cenários de erro.
+Critérios de aceite:
+- Falhas de rede, erros de API e respostas incompletas não interrompem a experiência.
+- O sistema mantém mensagens claras e consistentes para todos os cenários de erro.
+- A aplicação continua operável mesmo quando informações extras não estejam disponíveis.
 
 ### NFR5. Acessibilidade
-A aplicação deve seguir boas práticas de acessibilidade.
+A interface deve favorecer uso com teclado, leitura e compreensão por pessoas com diferentes necessidades.
 
-Acceptance Criteria:
-- Os campos de busca e os controles de temperatura possuem labels acessíveis.
-- O foco de teclado é visível.
-- O conteúdo principal é legível e o contraste é suficiente para leitura em mobile.
+Critérios de aceite:
+- Campos e controles possuem rótulos ou identificadores acessíveis.
+- A navegação por teclado mantém foco visível e previsível.
+- Textos, contrastes e áreas de interação mantêm boa legibilidade em mobile.
 
 ### NFR6. Segurança
-A aplicação deve tratar entradas e respostas de API com cuidado.
+A aplicação deve tratar dados externos e entradas do usuário com cuidado.
 
-Acceptance Criteria:
-- A entrada do usuário é validada antes do envio da busca.
-- Dados externos não são exibidos em logs ou em mensagens técnicas ao usuário.
+Critérios de aceite:
+- A entrada do usuário é validada antes de ser enviada para busca.
+- Dados e mensagens vindos de serviços externos não são expostos em logs ou detalhes técnicos ao usuário final.
+- A aplicação utiliza comunicação segura para acesso à API e não requer sensibilidade de dados do usuário.
 
 ## Edge Cases
 
-- Input vazio: o sistema deve impedir a busca e mostrar mensagem de validação.
-- Cidade inexistente: o sistema deve exibir “cidade não encontrada” e manter o usuário em tela estável.
-- Múltiplos resultados: o sistema deve listar opções e exigir seleção do usuário.
-- Caracteres especiais: o sistema deve aceitar nomes com acentos, cedilha e variações válidas.
-- Falha de API: o sistema deve exibir mensagem de erro e permitir nova tentativa.
-- Timeout da API: o sistema deve informar indisponibilidade temporária e não travar a tela.
-- Geocoding sem resultado: o sistema deve indicar ausência de localidade correspondente.
-- Resposta parcial da API: o sistema deve renderizar apenas os campos disponíveis e sinalizar a ausência do dado.
+- Entrada vazia no campo de busca: o sistema deve impedir a consulta e informar ao usuário que é necessário digitar uma cidade.
+- Cidade inexistente: a aplicação deve exibir mensagem de “cidade não encontrada” e manter a tela em estado estável.
+- Múltiplos resultados para um mesmo nome: a interface deve permitir a escolha correta entre as opções disponíveis.
+- Nomes com acentos ou caracteres especiais: o sistema deve aceitar e tratar corretamente a busca por cidades com grafias variadas.
+- Falha de rede: a aplicação deve mostrar erro de conexão e permitir nova tentativa.
+- Timeout de resposta da API: a interface deve informar indisponibilidade temporária sem travar a experiência.
+- Resposta incompleta da API: o sistema deve renderizar somente os dados válidos e indicar ausência de informação quando necessário.
+- Cidade parcialmente conhecida: se a API retornar mais de uma coincidência ou dados ambíguos, a aplicação deve priorizar clareza na seleção.
+- Unidade ativa em sessão: quando o usuário alterna entre Celsius e Fahrenheit, nenhuma parte da tela deve continuar exibindo a unidade anterior de forma inconsistente.
 
 ## Assumptions
 
-- A API pública Open-Meteo será usada para geocodificação e clima.
-- O produto prioriza uso casual, rápido e sem autenticação.
-- O idioma da interface será pt-BR.
-- O produto não terá backend próprio nem banco de dados servidor.
-- O sistema usará Celsius como padrão e oferecerá conversão para Fahrenheit.
-- O escopo inicial não inclui favoritos, histórico persistente, notificações ou alertas meteorológicos.
+- A fonte de dados será a API pública Open-Meteo, sem necessidade de credenciais do usuário.
+- A aplicação será uma solução web responsiva, com foco em uso mobile.
+- A interface será em português do Brasil.
+- A aplicação não exigirá autenticação nem cadastro para uso básico.
+- A unidade padrão da tela será Celsius, com opção de conversão para Fahrenheit.
+- A previsão contemplará os próximos 5 dias, definidos como hoje + 4 dias consecutivos.
+- O MVP não incluirá backend próprio, persistência de dados do usuário ou histórico de buscas no servidor.
+- O escopo inicial prioriza simplicidade, velocidade e clareza sobre recursos avançados.
 
 ## Risks
 
-- Dependência de API externa.
-- Ambiguidade de busca por nomes repetidos.
-- Dados incompletos retornados pela API.
-- Rede móvel lenta ou instável.
-- Conversão de unidades inconsistentes.
-- Falta de clareza no comportamento em cenários de falha.
+- Dependência de uma API externa: indisponibilidade, latência ou mudanças de contrato podem impactar a funcionalidade.
+- Ambiguidade na busca por cidade: nomes repetidos em diferentes estados ou países podem gerar confusão.
+- Dados incompletos: a API pode devolver campos ausentes ou inconsistentes.
+- Rede móvel instável: consultas em redes lentas podem aumentar o tempo de resposta e afetar a percepção de performance.
+- Conversão de unidade: erros na conversão entre Celsius e Fahrenheit podem causar inconsistência na interface.
+- Falta de clareza em cenários de falha: mensagens pouco objetivas podem gerar frustração e reduzir a confiança do usuário.
 
 ## Out of Scope
 
-- Autenticação e cadastro.
-- Histórico ou favoritos persistidos em servidor.
-- Notificações push.
-- Mapa interativo.
-- Dados meteorológicos avançados como radar, alertas severos e previsão horária detalhada.
-- Backend próprio ou persistence de dados.
+- Autenticação e cadastro de usuários.
+- Persistência de dados em servidor, histórico de buscas ou favoritos.
+- Notificações push ou alertas meteorológicos automáticos.
+- Mapa interativo, radar e imagens de satélite.
+- Previsão horária detalhada, alertas severos e dados meteorológicos avançados.
+- Funcionalidades de geolocalização automática, salvo se definidas em um escopo futuro.
+- Integração com redes sociais, compartilhamento ou personalização de perfil.
 
 ## Open Questions
 
-- A aplicação deve abrir com cidade padrão, geolocalização automática ou estado vazio?
-- A busca deve aceitar apenas cidade ou também região/país?
-- Os dados complementares (umidade, vento, precipitação) entram no MVP ou ficam para versões futuras?
+- A aplicação deve abrir com uma cidade inicial padrão, com geolocalização automática ou com tela vazia até o usuário buscar?
+- A busca deve aceitar somente nomes de cidades ou também regiões, estados e países relevantes para a consulta?
+- Os dados complementares, como umidade, vento e precipitação, devem entrar no MVP ou ficar para versões futuras?
+- A conversão de temperatura deve ser aplicada apenas na visualização ou também em qualquer mecanismo de comparação interna?
+- O produto precisa de um estado de “localização atual” para facilitar consultas recorrentes em um mesmo dispositivo?
+- A aplicação deve armazenar pesquisas recentes somente no cliente ou esse comportamento é considerado fora do escopo inicial?
